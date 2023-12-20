@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Time Products</title>
+</head>
+<body>
+    <h1>Lista de Productos en Tiempo Real</h1>
+    <ul>
+        {{#each products}}
+            <li>{{this.title}} - {{this.price}}</li>
+        {{/each}}
+    </ul>
+
+    <form id="addProductForm">
+        <label for="title">Título:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="price">Precio:</label>
+        <input type="number" id="price" name="price" required>
+        <button type="submit">Agregar Producto</button>
+    </form>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        // Lógica para manejar eventos de sockets en el cliente
+        const socket = io();
+
+        socket.on('updateProducts', (products) => {
+            // Actualiza dinámicamente la lista de productos en la página
+            const productList = document.querySelector('ul');
+            productList.innerHTML = '';
+
+            products.forEach((product) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${product.title} - ${product.price}`;
+                productList.appendChild(listItem);
+            });
+        });
+
+        // Lógica para manejar el envío del formulario y emitir un evento de socket
+        const addProductForm = document.getElementById('addProductForm');
+
+        addProductForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const titleInput = document.getElementById('title');
+            const priceInput = document.getElementById('price');
+
+            const newProduct = {
+                title: titleInput.value,
+                price: parseFloat(priceInput.value),
+            };
+
+            // Emitir un evento de socket para agregar un nuevo producto
+            socket.emit('addProduct', newProduct);
+
+            // Limpiar los campos del formulario después de enviarlos
+            titleInput.value = '';
+            priceInput.value = '';
+        });
+    </script>
+</body>
+</html>
